@@ -4,9 +4,15 @@ import numpy as np
 import torch
 import torch.nn as nn
 import time
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+
 from PIL import Image, ImageDraw, ImageFont
 
-# Placeholder function to simulate a PyTorch model
+# --------------------------------------------------------------------
+# Dummy PyTorch Model
+# --------------------------------------------------------------------
 class DriveVisionModel(nn.Module):
     def __init__(self):
         super(DriveVisionModel, self).__init__()
@@ -20,20 +26,29 @@ class DriveVisionModel(nn.Module):
         x = self.fc(x)
         return x
 
-# Generate a random image placeholder
+# --------------------------------------------------------------------
+# Generate a placeholder image (draws text in the center)
+# --------------------------------------------------------------------
 def generate_placeholder_image(label_text, size=(600, 300), bg_color=(220, 220, 220)):
+    """
+    Creates a basic PIL image with a centered text label.
+    """
     img = Image.new("RGB", size, color=bg_color)
     draw = ImageDraw.Draw(img)
     try:
         font = ImageFont.truetype("arial.ttf", 20)
     except:
         font = ImageFont.load_default()
-    text_w, text_h = draw.textsize(label_text, font=font)
-    pos = ((size[0]-text_w)//2, (size[1]-text_h)//2)
-    draw.text(pos, label_text, fill=(0,0,0), font=font)
+
+    # Use font.getsize() instead of draw.textsize()
+    text_w, text_h = font.getsize(label_text)
+    pos = ((size[0] - text_w) // 2, (size[1] - text_h) // 2)
+    draw.text(pos, label_text, fill=(0, 0, 0), font=font)
     return img
 
+# --------------------------------------------------------------------
 # Dummy data for demonstration
+# --------------------------------------------------------------------
 dummy_data = pd.DataFrame({
     "Time": np.arange(10),
     "Sensor1": np.random.randn(10),
@@ -41,10 +56,13 @@ dummy_data = pd.DataFrame({
     "Sensor3": np.random.randn(10)
 })
 
-# Instantiating a dummy model
+# Instantiate a dummy model
 model = DriveVisionModel()
 fake_input = torch.randn(1, 3, 64, 64)
 
+# --------------------------------------------------------------------
+# Main App
+# --------------------------------------------------------------------
 def main():
     st.set_page_config(page_title="DriveVision Technical App", layout="wide")
 
@@ -60,6 +78,9 @@ def main():
     elif choice == "Data Visualization":
         data_viz_page()
 
+# --------------------------------------------------------------------
+# Pages
+# --------------------------------------------------------------------
 def arch_page():
     col1, col2 = st.columns(2)
     with col1:
@@ -130,7 +151,7 @@ class PlanningHead(nn.Module):
         st.code(code, language="python")
 
     with c2:
-        image_pipeline = generate_placeholder_image("Data Flow & Module Interaction", (400,300))
+        image_pipeline = generate_placeholder_image("Data Flow & Module Interaction", (400, 300))
         st.image(image_pipeline)
 
 def live_demo_page():
@@ -158,9 +179,16 @@ def data_viz_page():
     st.line_chart(dummy_data.set_index("Time"))
 
     st.write("Correlation Matrix")
-    corr = dummy_data[["Sensor1","Sensor2","Sensor3"]].corr()
+    corr = dummy_data[["Sensor1", "Sensor2", "Sensor3"]].corr()
     st.write(corr)
-    st.heatmap(corr)
 
+    st.write("Heatmap (Seaborn)")
+    fig, ax = plt.subplots()
+    sns.heatmap(corr, annot=True, cmap="Blues", ax=ax)
+    st.pyplot(fig)
+
+# --------------------------------------------------------------------
+# Entry Point
+# --------------------------------------------------------------------
 if __name__ == "__main__":
     main()
